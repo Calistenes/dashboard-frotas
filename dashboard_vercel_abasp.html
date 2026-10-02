@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Acompanhamento - Integração Planilha</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .tab-active { background-color: #ea580c; color: #ffffff !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="mb-6 bg-gradient-to-r from-slate-800 to-slate-700 rounded-2xl p-6 text-white shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                    <i class="fa-solid fa-chart-line text-orange-500"></i> Painel de Acompanhamento Operacional
+                </h1>
+                <p class="text-slate-300 text-sm mt-1">
+                    Visualização Integrada das Abas: Pendentes, Realizadas, Devolvidos e Base CRUD
+                </p>
+            </div>
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <span class="bg-white/10 px-4 py-2 rounded-xl border border-white/20"><i class="fa-solid fa-link text-emerald-400"></i> Integrado com Google Sheets</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+        <button onclick="switchTab('geral')" id="btn-geral" class="tab-btn tab-active px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie"></i> Dashboards
+        </button>
+        <button onclick="switchTab('pendentes')" id="btn-pendentes" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> Pendentes
+            <span class="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 font-bold rounded-full">12</span>
+        </button>
+        <button onclick="switchTab('realizadas')" id="btn-realizadas" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-500"></i> Realizadas
+            <span class="px-2 py-0.5 text-xs bg-emerald-100 text-emerald-800 font-bold rounded-full">15</span>
+        </button>
+        <button onclick="switchTab('devolvidos')" id="btn-devolvidos" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-rotate-left text-rose-500"></i> Devolvidos
+            <span class="px-2 py-0.5 text-xs bg-rose-100 text-rose-800 font-bold rounded-full">5</span>
+        </button>
+        <button onclick="switchTab('crud')" id="btn-crud" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-users text-blue-500"></i> Base de Funcionários
+            <span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 font-bold rounded-full">58</span>
+        </button>
+    </nav>
+
+    <!-- TAB: DASHBOARDS GERAIS -->
+    <div id="tab-content-geral" class="tab-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-amber-500">
+                <p class="text-sm font-bold text-slate-500 uppercase">Preventivas Pendentes</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2">12</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-emerald-500">
+                <p class="text-sm font-bold text-slate-500 uppercase">Preventivas Realizadas</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2">15</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-rose-500">
+                <p class="text-sm font-bold text-slate-500 uppercase">Preventivas Devolvidas</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2">5</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-500">
+                <p class="text-sm font-bold text-slate-500 uppercase">Efetivo de Campo</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2">58</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Volume Operacional</h3>
+                <div class="h-64"><canvas id="chartStatusGeneral"></canvas></div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Divisão por Estado</h3>
+                <div class="h-64"><canvas id="chartUFGeneral"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PENDENTES -->
+    <div id="tab-content-pendentes" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">Aba: Preventivas Pendentes</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">CTO / POP</th><th class="px-6 py-3">Cidade/UF</th><th class="px-6 py-3">Técnico Responsável</th><th class="px-6 py-3">Supervisor</th><th class="px-6 py-3">Status</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tablePendentes"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: REALIZADAS -->
+    <div id="tab-content-realizadas" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">Aba: Preventivas Realizadas</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">CTO / POP</th><th class="px-6 py-3">Cidade/UF</th><th class="px-6 py-3">Técnico Executor</th><th class="px-6 py-3">Tipo de Serviço</th><th class="px-6 py-3">Qualidade</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableRealizadas"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: DEVOLVIDOS -->
+    <div id="tab-content-devolvidos" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">Aba: Preventivas Devolvidas</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr><th class="px-6 py-3">Código</th><th class="px-6 py-3">CTO / POP</th><th class="px-6 py-3">Cidade/UF</th><th class="px-6 py-3">Técnico</th><th class="px-6 py-3">Motivo da Devolução</th><th class="px-6 py-3">Status Tratativa</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableDevolvidos"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: CRUD -->
+    <div id="tab-content-crud" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200">
+                <h3 class="text-lg font-bold text-slate-800">Aba: Base de Funcionários (CRUD)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr><th class="px-6 py-3">Funcionário</th><th class="px-6 py-3">Cargo</th><th class="px-6 py-3">Setor</th><th class="px-6 py-3">Gerência</th><th class="px-6 py-3">Status</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableCrud"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const pendentesData = [{"codigo": "PRV-1000", "cto_pop": "CTO-CE-77", "cidade": "V\u00c1RZEA ALEGRE", "uf": "CE", "tecnico": "AISLAN LUCAS BEZERRA", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "M\u00e9dia", "status": "Pendente"}, {"codigo": "PRV-1001", "cto_pop": "CTO-CE-66", "cidade": "FORTALEZA", "uf": "CE", "tecnico": "ABRAAO ANDERSON LOPES TEIXEIRA", "supervisor": "MARCELO PETRUCIO DOS SANTOS", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Baixa", "status": "Pendente"}, {"codigo": "PRV-1002", "cto_pop": "CTO-RN-82", "cidade": "MOSSOR\u00d3", "uf": "RN", "tecnico": "ADRIENIO DO NASCIMENTO ARAUJO", "supervisor": "MARCELO PETRUCIO DOS SANTOS", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Baixa", "status": "Pendente"}, {"codigo": "PRV-1003", "cto_pop": "CTO-BA-84", "cidade": "CAMA\u00c7ARI", "uf": "BA", "tecnico": "ADILSON DOS SANTOS ALVES", "supervisor": "YKARO DOS SANTOS FREITAS", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1004", "cto_pop": "CTO-RN-23", "cidade": "MACA\u00cdBA", "uf": "RN", "tecnico": "ABIMAEL BERNARDINO DE OLIVEIRA", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva Arm\u00e1rio", "data_agendamento": "2026-10-02", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1005", "cto_pop": "CTO-BA-48", "cidade": "FEIRA DE SANTANA", "uf": "BA", "tecnico": "ADREAN DOS SANTOS E SOUZA DA SILVA", "supervisor": "YKARO DOS SANTOS FREITAS", "tipo": "Inspe\u00e7\u00e3o de Rede", "data_agendamento": "2026-10-02", "prioridade": "M\u00e9dia", "status": "Pendente"}, {"codigo": "PRV-1006", "cto_pop": "CTO-RN-15", "cidade": "NATAL", "uf": "RN", "tecnico": "ABIMAEL FERNANDES DO NASCIMENTO", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva Arm\u00e1rio", "data_agendamento": "2026-10-02", "prioridade": "M\u00e9dia", "status": "Pendente"}, {"codigo": "PRV-1007", "cto_pop": "CTO-PI-47", "cidade": "PARNA\u00cdBA", "uf": "PI", "tecnico": "ADERSON ROCHA DA SILVA", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Preventiva Arm\u00e1rio", "data_agendamento": "2026-10-02", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1008", "cto_pop": "CTO-BA-26", "cidade": "CAMACARI", "uf": "BA", "tecnico": "ADIELSON BORGES DE JESUS", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1009", "cto_pop": "CTO-RN-85", "cidade": "S\u00c3O GON\u00c7ALO DO AMARANTE", "uf": "RN", "tecnico": "AGUSTINHO FELICIANO DANTAS JUNIOR", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "M\u00e9dia", "status": "Pendente"}, {"codigo": "PRV-1010", "cto_pop": "CTO-PE-95", "cidade": "SANTA CRUZ DO CAPIBARIBE", "uf": "PE", "tecnico": "ALAN DIEGO DA SILVA", "supervisor": "VAGA EM ABERTO - PE", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Baixa", "status": "Pendente"}, {"codigo": "PRV-1011", "cto_pop": "CTO-100%-93", "cidade": "\u00daNICA", "uf": "100%", "tecnico": "ADSON PAIM SANTOS", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Inspe\u00e7\u00e3o de Rede", "data_agendamento": "2026-10-02", "prioridade": "Baixa", "status": "Pendente"}];
+        const realizadasData = [{"codigo": "PRV-2000", "cto_pop": "CTO-MA-49", "cidade": "TIMON", "uf": "MA", "tecnico": "ADAILSON CARDOSO DA SILVA", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Limpeza de Conectores", "data_conclusao": "2026-10-01", "duracao": "70 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2001", "cto_pop": "CTO-RN-66", "cidade": "NATAL", "uf": "RN", "tecnico": "ADON BONFIM SILVA", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "76 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2002", "cto_pop": "CTO-PI-86", "cidade": "PARNA\u00cdBA", "uf": "PI", "tecnico": "ADERSON ROCHA DA SILVA", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Limpeza de Conectores", "data_conclusao": "2026-10-01", "duracao": "84 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2003", "cto_pop": "CTO-BA-81", "cidade": "CAMACARI", "uf": "BA", "tecnico": "ADIELSON BORGES DE JESUS", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Limpeza de Conectores", "data_conclusao": "2026-10-01", "duracao": "47 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2004", "cto_pop": "CTO-CE-86", "cidade": "IGUATU", "uf": "CE", "tecnico": "ALAN LUECIO ALVES FILIPE JUNIOR", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "42 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2005", "cto_pop": "CTO-TIAGO DE SOUZA MATOS-90", "cidade": "ITALO JOSE PORCIUNCULA DOS SANTOS", "uf": "TIAGO DE SOUZA MATOS", "tecnico": "ADENILSON TEIXEIRA DOS SANTOS", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "34 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2006", "cto_pop": "CTO-DUPLA - AJUDANTE-75", "cidade": "CE", "uf": "DUPLA - AJUDANTE", "tecnico": "ALAN CARLOS NUNES SOUSA", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "59 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2007", "cto_pop": "CTO-PI-70", "cidade": "PARNA\u00cdBA", "uf": "PI", "tecnico": "ALAN VINICIUS NUNES TEIXEIRA ARAUJO", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "53 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2008", "cto_pop": "CTO-AL-11", "cidade": "MACEI\u00d3", "uf": "AL", "tecnico": "ADELLON JORDAO DA SILVA", "supervisor": "SEBASTIAO RIBEIRO DA SILVA", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "67 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2009", "cto_pop": "CTO-nan-89", "cidade": "nan", "uf": "nan", "tecnico": "ADALBERTO VICTOR ANDRADE PEREIRA", "supervisor": "GEOGENES MAGALHAES BEZERRA", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "75 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2010", "cto_pop": "CTO-PB-28", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "AILTON GONZAGA ALVES DA SILVA", "supervisor": "JOSE MATHEUS NOGUEIRA DE BRITO", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "77 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2011", "cto_pop": "CTO-CE-12", "cidade": "SOBRAL", "uf": "CE", "tecnico": "ADILSON DE SOUSA COELHO", "supervisor": "MARCELO PETRUCIO DOS SANTOS", "tipo": "Limpeza de Conectores", "data_conclusao": "2026-10-01", "duracao": "84 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2012", "cto_pop": "CTO-RN-66", "cidade": "MACA\u00cdBA", "uf": "RN", "tecnico": "ABIMAEL BERNARDINO DE OLIVEIRA", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "87 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2013", "cto_pop": "CTO-RN-33", "cidade": "CAIC\u00d3", "uf": "RN", "tecnico": "ADRIANO NUNES DA SILVA", "supervisor": "JOSE NILDOMAR DE AQUINO", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "49 min", "qualidade": "Aprovado"}, {"codigo": "PRV-2014", "cto_pop": "CTO-CE-51", "cidade": "LIMOEIRO DO NORTE", "uf": "CE", "tecnico": "ADRIANO RODRIGUES DA SILVA", "supervisor": "MARCELO PETRUCIO DOS SANTOS", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "56 min", "qualidade": "Aprovado"}];
+        const devolvidosData = [{"codigo": "PRV-3000", "cto_pop": "CTO-PB-81", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "ADRIANO DA SILVA PAIVA", "motivo": "Port\u00e3o fechado", "data_devolucao": "2026-10-01", "status_tratativa": "Em an\u00e1lise cadastral"}, {"codigo": "PRV-3001", "cto_pop": "CTO-RN-15", "cidade": "S\u00c3O GON\u00c7ALO DO AMARANTE", "uf": "RN", "tecnico": "AGUSTINHO FELICIANO DANTAS JUNIOR", "motivo": "Endere\u00e7o incorreto", "data_devolucao": "2026-10-01", "status_tratativa": "Em an\u00e1lise cadastral"}, {"codigo": "PRV-3002", "cto_pop": "CTO-CE-18", "cidade": "V\u00c1RZEA ALEGRE", "uf": "CE", "tecnico": "AISLAN LUCAS BEZERRA", "motivo": "Endere\u00e7o incorreto", "data_devolucao": "2026-10-01", "status_tratativa": "Reagendado"}, {"codigo": "PRV-3003", "cto_pop": "CTO-RN-33", "cidade": "NATAL", "uf": "RN", "tecnico": "ADAILTON SILVA DE MACEDO", "motivo": "Endere\u00e7o incorreto", "data_devolucao": "2026-10-01", "status_tratativa": "Reagendado"}, {"codigo": "PRV-3004", "cto_pop": "CTO-PE-89", "cidade": "IGARASSU", "uf": "PE", "tecnico": "ALAN HENRIQUE DA SILVA SANTOS", "motivo": "Endere\u00e7o incorreto", "data_devolucao": "2026-10-01", "status_tratativa": "Em an\u00e1lise cadastral"}];
+        const crudData = [{"nome": "ABEL BARROS DE FREITAS", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "FORTALEZA", "uf": "CE", "status": "ATIVO"}, {"nome": "ABEL MARQUES ALVES VIEIRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO B2B", "setor": "MANUTENCAO DE PROJETOS CORPORATIVOS", "gerencia": "JOSE MATHEUS NOGUEIRA DE BRITO", "cidade": "MACEI\u00d3", "uf": "AL", "status": "ATIVO"}, {"nome": "ABILIO PAIS DE SOUZA JUNIOR", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "ALLAN WILLAMS DOS SANTOS SILVA", "uf": "SUERLY PEIXOTO BEZERRA", "status": "ATIVO"}, {"nome": "ABIMAEL BERNARDINO DE OLIVEIRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "MACA\u00cdBA", "uf": "RN", "status": "ATIVO"}, {"nome": "ABIMAEL FERNANDES DO NASCIMENTO", "cargo": "OPERADOR DE FWA", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ABNER MONTEIRO RODRIGUES", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "QUIXAD\u00c1", "uf": "CE", "status": "ATIVO"}, {"nome": "ABRAAO ANDERSON LOPES TEIXEIRA", "cargo": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "FORTALEZA", "uf": "CE", "status": "ATIVO"}, {"nome": "ABRAAO HENRIQUE RUFINO MARQUES DA SILVA", "cargo": "SUPERVISOR DE MANUTENCAO DE FIBRA OPTICA II", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "FRANCISCO RODRIGO SOUSA LOPES", "uf": "PNZ8A03", "status": "F\u00c9RIAS"}, {"nome": "ADAILSON CARDOSO DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "TIMON", "uf": "MA", "status": "ATIVO"}, {"nome": "ADAILTON SILVA DE MACEDO", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ADALBERTO VICTOR ANDRADE PEREIRA", "cargo": "AUXILIAR DE AGENDAMENTO", "setor": "AGENDAMENTO", "gerencia": "GEOGENES MAGALHAES BEZERRA", "cidade": "nan", "uf": "nan", "status": "ATIVO"}, {"nome": "ADALTO DA SILVA SOUSA JUNIOR", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "PICOS", "uf": "PI", "status": "ATIVO"}, {"nome": "ADAUTO EUZEBIO NETO", "cargo": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "SANTA RITA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADDISOM AUGUSTO FERREIRA DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADELLON JORDAO DA SILVA", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "MACEI\u00d3", "uf": "AL", "status": "ATIVO"}, {"nome": "ADEMARIO SALES DA SILVA", "cargo": "ASSISTENTE DE SERVI\u00c7OS DE CAMPO (ATIVO PVR)", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "YKARO DOS SANTOS FREITAS", "cidade": "BA", "uf": "UMARLEI RICARTE PEREIRA", "status": "ATIVO"}, {"nome": "ADENILSON TEIXEIRA DOS SANTOS", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "ITALO JOSE PORCIUNCULA DOS SANTOS", "uf": "TIAGO DE SOUZA MATOS", "status": "ATIVO"}, {"nome": "ADERSON ROCHA DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "PARNA\u00cdBA", "uf": "PI", "status": "ATIVO"}, {"nome": "ADIELSON BORGES DE JESUS", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "CAMACARI", "uf": "BA", "status": "ATIVO"}, {"nome": "ADILSON DE SOUSA COELHO", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "SOBRAL", "uf": "CE", "status": "ATIVO"}, {"nome": "ADILSON DOS SANTOS ALVES", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "YKARO DOS SANTOS FREITAS", "cidade": "CAMA\u00c7ARI", "uf": "BA", "status": "ATIVO"}, {"nome": "ADON BONFIM SILVA", "cargo": "OPERADOR DE FWA", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ADONAI MURIEL FERNANDES DE OLIVEIRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "JUAZEIRO", "uf": "BA", "status": "ATIVO"}, {"nome": "ADONIS DOS SANTOS HERMINIO", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "SANTA LUZIA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADREAN DOS SANTOS E SOUZA DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "YKARO DOS SANTOS FREITAS", "cidade": "FEIRA DE SANTANA", "uf": "BA", "status": "ATIVO"}, {"nome": "ADRIAN ROMARIO SANTOS DA SILVA", "cargo": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "PE", "uf": "COMERCIAL", "status": "ATIVO"}, {"nome": "ADRIAN VICTOR BATISTA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "\u00daNICA", "uf": "5X2", "status": "ATIVO"}, {"nome": "ADRIANO BARBOSA DE ALBUQUERQUE", "cargo": "SUPERVISOR", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "MARCOS VINICIUS LUIZ DA SILVA", "uf": "SAW3A31", "status": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO"}, {"nome": "ADRIANO BERNARDO DE SALES", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ADRIANO DA SILVA PAIVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADRIANO DOS SANTOS SANTANA", "cargo": "SUPERVISOR DE MANUTENCAO DE FIBRA OPTICA I", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "TIAGO DE SOUZA MATOS", "uf": "PON5J82", "status": "ATIVO"}, {"nome": "ADRIANO FELIX DA ROCHA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "DIRETORIA DE OPERACOES", "gerencia": "DIRETORIA DE OPERACOES", "cidade": "BOM CONSELHO", "uf": "PE", "status": "ATIVO"}, {"nome": "ADRIANO GOMES SOBRINHO", "cargo": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "CE", "uf": "COMERCIAL", "status": "ATIVO"}, {"nome": "ADRIANO MUNIZ DOS SANTOS MOURA", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADRIANO NUNES DA SILVA", "cargo": "OPERADOR DE FWA", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "CAIC\u00d3", "uf": "RN", "status": "ATIVO"}, {"nome": "ADRIANO RODRIGUES CAVALCANTE CORDEIRO", "cargo": "EXTERNO", "setor": "DIRETORIA DE OPERACOES", "gerencia": "BOM CONSELHO", "cidade": "PE", "uf": "DUPLA - AJUDANTE", "status": "OPERADOR DE SERVI\u00c7OS DE CAMPO"}, {"nome": "ADRIANO RODRIGUES DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "LIMOEIRO DO NORTE", "uf": "CE", "status": "ATIVO"}, {"nome": "ADRIEL DO NASCIMENTO SOUZA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "BELO JARDIM", "uf": "PE", "status": "ATIVO"}, {"nome": "ADRIELSON SANTOS RIBEIRO DE SOUZA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADRIENIO DO NASCIMENTO ARAUJO", "cargo": "PAP MULTISKILL", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "MOSSOR\u00d3", "uf": "RN", "status": "ATIVO"}, {"nome": "ADRIO GABRIEL RODRIGUES BOTELHO", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "\u00daNICA", "uf": "100%", "status": "ATIVO"}, {"nome": "ADSON PAIM SANTOS", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "\u00daNICA", "uf": "100%", "status": "ATIVO"}, {"nome": "AGNALDO OLIVEIRA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "TERESINA", "uf": "PI", "status": "ATIVO"}, {"nome": "AGUSTINHO FELICIANO DANTAS JUNIOR", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "S\u00c3O GON\u00c7ALO DO AMARANTE", "uf": "RN", "status": "ATIVO"}, {"nome": "AILTON AMARAL SODRE JUNIOR", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "ENCANTO", "uf": "RN", "status": "ATIVO"}, {"nome": "AILTON GONZAGA ALVES DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO B2B", "setor": "MANUTENCAO DE PROJETOS CORPORATIVOS", "gerencia": "JOSE MATHEUS NOGUEIRA DE BRITO", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "AISLAN LUCAS BEZERRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "V\u00c1RZEA ALEGRE", "uf": "CE", "status": "ATIVO"}, {"nome": "ALAN APRIGIO ALVES", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ALAN CARLOS NUNES SOUSA", "cargo": "OPERADOR DE MANUTENCAO DE FIBRA OPTICA", "setor": "MANUTENCAO DE FIBRA", "gerencia": "SEBASTIAO RIBEIRO DA SILVA", "cidade": "CE", "uf": "DUPLA - AJUDANTE", "status": "ATIVO"}, {"nome": "ALAN DE MELO SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO B2B", "setor": "MANUTENCAO DE PROJETOS CORPORATIVOS", "gerencia": "JOSE MATHEUS NOGUEIRA DE BRITO", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ALAN DIEGO DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "SANTA CRUZ DO CAPIBARIBE", "uf": "PE", "status": "ATIVO"}, {"nome": "ALAN HENRIQUE DA SILVA SANTOS", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "VAGA EM ABERTO - PE", "cidade": "IGARASSU", "uf": "PE", "status": "ATIVO"}, {"nome": "ALAN LUECIO ALVES FILIPE JUNIOR", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "IGUATU", "uf": "CE", "status": "ATIVO"}, {"nome": "ALAN QUEIROZ DO NASCIMENTO", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "CAMPINA GRANDE", "uf": "PB", "status": "ATIVO"}, {"nome": "ALAN VINICIUS NUNES TEIXEIRA ARAUJO", "cargo": "OPERADOR DE FWA", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "PARNA\u00cdBA", "uf": "PI", "status": "ATIVO"}, {"nome": "ALANA CINTIA OLIVEIRA ALVES", "cargo": "AUXILIAR DE AGENDAMENTO", "setor": "AGENDAMENTO", "gerencia": "GEOGENES MAGALHAES BEZERRA", "cidade": "nan", "uf": "nan", "status": "ATIVO"}, {"nome": "ALBANO JOSE DAS NEVES", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "BREJO SANTO", "uf": "CE", "status": "ATIVO"}, {"nome": "ALBERES FERNANDES LIRA DA CUNHA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "JOSE NILDOMAR DE AQUINO", "cidade": "CAMPINA GRANDE", "uf": "PB", "status": "ATIVO"}];
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
+            document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+            document.getElementById('btn-' + tabName).classList.add('tab-active');
+        }
+
+        const renderTable = (data, tbodyId, htmlGenerator) => {
+            const tbody = document.getElementById(tbodyId);
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = htmlGenerator(row);
+                tbody.appendChild(tr);
+            });
+        };
+
+        renderTable(pendentesData, 'tablePendentes', row => `
+            <td class="px-6 py-4 font-bold">${row.codigo}</td>
+            <td class="px-6 py-4">${row.cto_pop}</td>
+            <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+            <td class="px-6 py-4">${row.tecnico}</td>
+            <td class="px-6 py-4">${row.supervisor}</td>
+            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold text-xs">${row.status}</span></td>
+        `);
+
+        renderTable(realizadasData, 'tableRealizadas', row => `
+            <td class="px-6 py-4 font-bold">${row.codigo}</td>
+            <td class="px-6 py-4">${row.cto_pop}</td>
+            <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+            <td class="px-6 py-4">${row.tecnico}</td>
+            <td class="px-6 py-4">${row.tipo}</td>
+            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-xs">${row.qualidade}</span></td>
+        `);
+
+        renderTable(devolvidosData, 'tableDevolvidos', row => `
+            <td class="px-6 py-4 font-bold">${row.codigo}</td>
+            <td class="px-6 py-4">${row.cto_pop}</td>
+            <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+            <td class="px-6 py-4">${row.tecnico}</td>
+            <td class="px-6 py-4 text-rose-600 font-medium">${row.motivo}</td>
+            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 text-slate-800 rounded-full font-bold text-xs">${row.status_tratativa}</span></td>
+        `);
+
+        renderTable(crudData, 'tableCrud', row => `
+            <td class="px-6 py-4 font-bold text-slate-800">${row.nome}</td>
+            <td class="px-6 py-4">${row.cargo}</td>
+            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-medium text-xs">${row.setor}</span></td>
+            <td class="px-6 py-4">${row.gerencia}</td>
+            <td class="px-6 py-4"><span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold text-xs">${row.status}</span></td>
+        `);
+
+        // Charts
+        new Chart(document.getElementById('chartStatusGeneral'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendentes', 'Realizadas', 'Devolvidos'],
+                datasets: [{ data: [12, 15, 5], backgroundColor: ['#f59e0b', '#10b981', '#f43f5e'] }]
+            }
+        });
+
+        new Chart(document.getElementById('chartUFGeneral'), {
+            type: 'bar',
+            data: {
+                labels: ['RN', 'PB', 'CE', 'PE', 'PI'],
+                datasets: [
+                    { label: 'Volume Alocado', data: [8, 12, 10, 5, 4], backgroundColor: '#3b82f6' }
+                ]
+            }
+        });
+    </script>
+</body>
+</html>
