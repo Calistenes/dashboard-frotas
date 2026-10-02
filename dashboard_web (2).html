@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Acompanhamento Operacional - Brisanet</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .tab-active {
+            background-color: #ea580c;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="mb-6 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-700 rounded-2xl p-6 text-white shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                    <i class="fa-solid fa-chart-line"></i> Painel de Acompanhamento Operacional
+                </h1>
+                <p class="text-orange-100 text-sm mt-1">
+                    Controle de Preventivas Pendentes, Realizadas, Devolvidos e Cadastro de Equipes
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-medium border border-white/30 flex items-center gap-2">
+                    <i class="fa-regular fa-clock"></i> Atualizado em 02/10/2026
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+        <button onclick="switchTab('geral')" id="btn-geral" class="tab-btn tab-active px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-house"></i> Visão Geral
+        </button>
+        <button onclick="switchTab('pendentes')" id="btn-pendentes" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> Pendentes
+            <span class="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 font-bold rounded-full">5</span>
+        </button>
+        <button onclick="switchTab('realizadas')" id="btn-realizadas" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-500"></i> Realizadas
+            <span class="px-2 py-0.5 text-xs bg-emerald-100 text-emerald-800 font-bold rounded-full">5</span>
+        </button>
+        <button onclick="switchTab('devolvidos')" id="btn-devolvidos" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-rotate-left text-rose-500"></i> Devolvidos
+            <span class="px-2 py-0.5 text-xs bg-rose-100 text-rose-800 font-bold rounded-full">3</span>
+        </button>
+        <button onclick="switchTab('crud')" id="btn-crud" class="tab-btn px-5 py-3 rounded-xl font-semibold text-sm text-slate-600 hover:text-orange-600 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-users text-blue-500"></i> Equipes (CRUD)
+            <span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 font-bold rounded-full">8</span>
+        </button>
+    </nav>
+
+    <!-- Global KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Preventivas Pendentes</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-800">5</div>
+            <span class="text-xs text-amber-600 font-semibold mt-2 inline-block"><i class="fa-solid fa-clock"></i> Aguardando Execução</span>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Preventivas Realizadas</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-800">5</div>
+            <span class="text-xs text-emerald-600 font-semibold mt-2 inline-block"><i class="fa-solid fa-check-double"></i> Finalizadas com Sucesso</span>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Preventivas Devolvidas</span>
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-800">3</div>
+            <span class="text-xs text-rose-600 font-semibold mt-2 inline-block"><i class="fa-solid fa-arrow-rotate-left"></i> Requer Tratativa</span>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 hover:shadow-md transition-all">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total de Colaboradores</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-extrabold text-slate-800">8</div>
+            <span class="text-xs text-blue-600 font-semibold mt-2 inline-block"><i class="fa-solid fa-users-gear"></i> Base Ativa IAT / Fibra</span>
+        </div>
+    </div>
+
+    <!-- TAB 1: VISÃO GERAL -->
+    <div id="tab-content-geral" class="tab-content">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-orange-500"></i> Status das Preventivas
+                </h3>
+                <div class="h-64">
+                    <canvas id="chartStatusGeneral"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-amber-500"></i> Preventivas por Estado (UF)
+                </h3>
+                <div class="h-64">
+                    <canvas id="chartUFGeneral"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: PENDENTES -->
+    <div id="tab-content-pendentes" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-500"></i> Preventivas Pendentes
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Lista de chamados preventivos aguardando atendimento técnico em campo</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Código</th>
+                            <th class="px-6 py-3">CTO / POP</th>
+                            <th class="px-6 py-3">Cidade / UF</th>
+                            <th class="px-6 py-3">Técnico Responsável</th>
+                            <th class="px-6 py-3">Supervisor</th>
+                            <th class="px-6 py-3">Tipo de Serviço</th>
+                            <th class="px-6 py-3">Prioridade</th>
+                            <th class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tablePendentes">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: REALIZADAS -->
+    <div id="tab-content-realizadas" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i> Preventivas Realizadas
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Histórico de preventivas executadas e aprovadas</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Código</th>
+                            <th class="px-6 py-3">CTO / POP</th>
+                            <th class="px-6 py-3">Cidade / UF</th>
+                            <th class="px-6 py-3">Técnico Executor</th>
+                            <th class="px-6 py-3">Supervisor</th>
+                            <th class="px-6 py-3">Tipo de Serviço</th>
+                            <th class="px-6 py-3">Data Conclusão</th>
+                            <th class="px-6 py-3">Qualidade</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableRealizadas">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: DEVOLVIDOS -->
+    <div id="tab-content-devolvidos" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left text-rose-500"></i> Preventivas Devolvidas
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Ocorrências devolvidas que necessitam de tratativa ou reagendamento</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Código</th>
+                            <th class="px-6 py-3">CTO / POP</th>
+                            <th class="px-6 py-3">Cidade / UF</th>
+                            <th class="px-6 py-3">Técnico</th>
+                            <th class="px-6 py-3">Motivo da Devolução</th>
+                            <th class="px-6 py-3">Data Devolução</th>
+                            <th class="px-6 py-3">Status Tratativa</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableDevolvidos">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: CRUD (EQUIPES) -->
+    <div id="tab-content-crud" class="tab-content hidden">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden mb-8">
+            <div class="p-6 bg-slate-50 border-b border-slate-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-users text-blue-500"></i> Cadastro de Funcionários e Equipes (CRUD)
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Base completa de operadores, supervisores e cargos de campo</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-slate-600">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Funcionário</th>
+                            <th class="px-6 py-3">Cargo</th>
+                            <th class="px-6 py-3">Setor</th>
+                            <th class="px-6 py-3">Gerência</th>
+                            <th class="px-6 py-3">Cidade / UF</th>
+                            <th class="px-6 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200" id="tableCrud">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datasets
+        const pendentesData = [{"codigo": "PRV-1001", "cto_pop": "CTO-JP-012", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "ADRIANO DA SILVA PAIVA", "supervisor": "ADAUTO EUZEBIO NETO", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-02", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1002", "cto_pop": "CTO-JP-045", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "ADDISOM AUGUSTO FERREIRA", "supervisor": "ADAUTO EUZEBIO NETO", "tipo": "Inspe\u00e7\u00e3o de Rede", "data_agendamento": "2026-10-02", "prioridade": "M\u00e9dia", "status": "Pendente"}, {"codigo": "PRV-1003", "cto_pop": "CTO-NAT-088", "cidade": "NATAL", "uf": "RN", "tecnico": "ABIMAEL FERNANDES", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva Arm\u00e1rio", "data_agendamento": "2026-10-03", "prioridade": "Alta", "status": "Pendente"}, {"codigo": "PRV-1004", "cto_pop": "CTO-MAC-019", "cidade": "MACA\u00cdBA", "uf": "RN", "tecnico": "ABIMAEL BERNARDINO", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva CTO", "data_agendamento": "2026-10-03", "prioridade": "Baixa", "status": "Pendente"}, {"codigo": "PRV-1005", "cto_pop": "CTO-FOR-102", "cidade": "FORTALEZA", "uf": "CE", "tecnico": "ABEL BARROS DE FREITAS", "supervisor": "MARCELO PETRUCIO", "tipo": "Troca de Cordoalha", "data_agendamento": "2026-10-04", "prioridade": "M\u00e9dia", "status": "Pendente"}];
+        const realizadasData = [{"codigo": "PRV-0980", "cto_pop": "CTO-JP-005", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "ADRIANO DA SILVA PAIVA", "supervisor": "ADAUTO EUZEBIO NETO", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "45 min", "qualidade": "Aprovado"}, {"codigo": "PRV-0981", "cto_pop": "CTO-JP-009", "cidade": "SANTA RITA", "uf": "PB", "tecnico": "ADRIELSON SANTOS", "supervisor": "ADAUTO EUZEBIO NETO", "tipo": "Organiza\u00e7\u00e3o de Cabeamento", "data_conclusao": "2026-10-01", "duracao": "60 min", "qualidade": "Aprovado"}, {"codigo": "PRV-0982", "cto_pop": "CTO-NAT-012", "cidade": "NATAL", "uf": "RN", "tecnico": "ABIMAEL BERNARDINO", "supervisor": "CLEBER OLIVEIRA SILVA", "tipo": "Preventiva CTO", "data_conclusao": "2026-10-01", "duracao": "35 min", "qualidade": "Aprovado"}, {"codigo": "PRV-0983", "cto_pop": "CTO-FOR-050", "cidade": "FORTALEZA", "uf": "CE", "tecnico": "ABEL BARROS DE FREITAS", "supervisor": "MARCELO PETRUCIO", "tipo": "Limpeza de Conectores", "data_conclusao": "2026-09-30", "duracao": "50 min", "qualidade": "Aprovado"}, {"codigo": "PRV-0984", "cto_pop": "CTO-MCZ-033", "cidade": "MACEI\u00d3", "uf": "AL", "tecnico": "ABEL MARQUES ALVES", "supervisor": "JOSE MATHEUS BRITO", "tipo": "Preventiva B2B", "data_conclusao": "2026-09-30", "duracao": "90 min", "qualidade": "Aprovado"}];
+        const devolvidosData = [{"codigo": "PRV-0950", "cto_pop": "CTO-JP-099", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "tecnico": "ADDISOM AUGUSTO FERREIRA", "supervisor": "ADAUTO EUZEBIO NETO", "motivo": "Sem acesso ao local / Port\u00e3o fechado", "data_devolucao": "2026-10-01", "status_tratativa": "Reagendado"}, {"codigo": "PRV-0951", "cto_pop": "CTO-NAT-044", "cidade": "NATAL", "uf": "RN", "tecnico": "ABIMAEL FERNANDES", "supervisor": "CLEBER OLIVEIRA SILVA", "motivo": "Endere\u00e7o incorreto / N\u00e3o localizado", "data_devolucao": "2026-09-30", "status_tratativa": "Em an\u00e1lise cadastral"}, {"codigo": "PRV-0952", "cto_pop": "CTO-FOR-022", "cidade": "FORTALEZA", "uf": "CE", "tecnico": "ABEL BARROS DE FREITAS", "supervisor": "MARCELO PETRUCIO", "motivo": "Chuva intensa / Risco de seguran\u00e7a", "data_devolucao": "2026-09-29", "status_tratativa": "Aguardando clima"}];
+        const crudData = [{"nome": "ABEL BARROS DE FREITAS", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "MARCELO PETRUCIO DOS SANTOS", "cidade": "FORTALEZA", "uf": "CE", "status": "ATIVO"}, {"nome": "ABEL MARQUES ALVES VIEIRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO B2B", "setor": "MANUTENCAO DE PROJETOS CORPORATIVOS", "gerencia": "JOSE MATHEUS NOGUEIRA DE BRITO", "cidade": "MACEI\u00d3", "uf": "AL", "status": "ATIVO"}, {"nome": "ABIMAEL BERNARDINO DE OLIVEIRA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "MACA\u00cdBA", "uf": "RN", "status": "ATIVO"}, {"nome": "ABIMAEL FERNANDES DO NASCIMENTO", "cargo": "OPERADOR DE FWA", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "NATAL", "uf": "RN", "status": "ATIVO"}, {"nome": "ADRIANO DA SILVA PAIVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADAUTO EUZEBIO NETO", "cargo": "SUPERVISOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "SANTA RITA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADDISOM AUGUSTO FERREIRA DA SILVA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}, {"nome": "ADRIELSON SANTOS RIBEIRO DE SOUZA", "cargo": "OPERADOR DE SERVI\u00c7OS DE CAMPO", "setor": "SERVICOS DE CAMPO IAT", "gerencia": "CLEBER OLIVEIRA SILVA", "cidade": "JO\u00c3O PESSOA", "uf": "PB", "status": "ATIVO"}];
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('tab-active'));
+
+            document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+            document.getElementById('btn-' + tabName).classList.add('tab-active');
+        }
+
+        // Render Tables
+        // 1. Pendentes
+        const tbodyPendentes = document.getElementById('tablePendentes');
+        pendentesData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-slate-800">${row.codigo}</td>
+                <td class="px-6 py-4 font-medium text-amber-700">${row.cto_pop}</td>
+                <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+                <td class="px-6 py-4 font-medium">${row.tecnico}</td>
+                <td class="px-6 py-4">${row.supervisor}</td>
+                <td class="px-6 py-4">${row.tipo}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold text-xs rounded-full">${row.prioridade}</span></td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-amber-50 text-amber-700 font-semibold text-xs rounded-full">${row.status}</span></td>
+            `;
+            tbodyPendentes.appendChild(tr);
+        });
+
+        // 2. Realizadas
+        const tbodyRealizadas = document.getElementById('tableRealizadas');
+        realizadasData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-slate-800">${row.codigo}</td>
+                <td class="px-6 py-4 font-medium text-emerald-700">${row.cto_pop}</td>
+                <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+                <td class="px-6 py-4 font-medium">${row.tecnico}</td>
+                <td class="px-6 py-4">${row.supervisor}</td>
+                <td class="px-6 py-4">${row.tipo}</td>
+                <td class="px-6 py-4">${row.data_conclusao}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full"><i class="fa-solid fa-check mr-1"></i>${row.qualidade}</span></td>
+            `;
+            tbodyRealizadas.appendChild(tr);
+        });
+
+        // 3. Devolvidos
+        const tbodyDevolvidos = document.getElementById('tableDevolvidos');
+        devolvidosData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-slate-800">${row.codigo}</td>
+                <td class="px-6 py-4 font-medium text-rose-700">${row.cto_pop}</td>
+                <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+                <td class="px-6 py-4 font-medium">${row.tecnico}</td>
+                <td class="px-6 py-4 text-rose-600 font-medium">${row.motivo}</td>
+                <td class="px-6 py-4">${row.data_devolucao}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold text-xs rounded-full">${row.status_tratativa}</span></td>
+            `;
+            tbodyDevolvidos.appendChild(tr);
+        });
+
+        // 4. CRUD
+        const tbodyCrud = document.getElementById('tableCrud');
+        crudData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-semibold text-slate-800">${row.nome}</td>
+                <td class="px-6 py-4">${row.cargo}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-medium text-xs rounded-full">${row.setor}</span></td>
+                <td class="px-6 py-4">${row.gerencia}</td>
+                <td class="px-6 py-4">${row.cidade} / ${row.uf}</td>
+                <td class="px-6 py-4"><span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">${row.status}</span></td>
+            `;
+            tbodyCrud.appendChild(tr);
+        });
+
+        // Render Charts
+        new Chart(document.getElementById('chartStatusGeneral'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendentes', 'Realizadas', 'Devolvidos'],
+                datasets: [{
+                    data: [5, 5, 3],
+                    backgroundColor: ['#f59e0b', '#10b981', '#f43f5e']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+
+        new Chart(document.getElementById('chartUFGeneral'), {
+            type: 'bar',
+            data: {
+                labels: ['PB', 'RN', 'CE', 'AL'],
+                datasets: [
+                    { label: 'Pendentes', data: [2, 2, 1, 0], backgroundColor: '#f59e0b' },
+                    { label: 'Realizadas', data: [2, 1, 1, 1], backgroundColor: '#10b981' },
+                    { label: 'Devolvidos', data: [1, 1, 1, 0], backgroundColor: '#f43f5e' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { x: { stacked: true }, y: { stacked: true } }
+            }
+        });
+    </script>
+</body>
+</html>
